@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "redis": "start \"redis server\" /MIN redis-server ./redis/conf/redis.conf"
   },
   "keywords": [],
