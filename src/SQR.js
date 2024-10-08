@@ -7,7 +7,7 @@ const { Parser } = pkg;
 const parser = new Parser();
 
 const NAMESPACE = "SQR:cache:"
-const TTL = 5  // Default TTL is five seconds 
+const TTL = 3  // Default TTL is three seconds 
 const opt = {
   database: 'MySQL' 
 }
@@ -25,40 +25,41 @@ function hash(data) {
 /**
  * Read from cache
  *
- * @param {string} sql - A string value
- * @returns {string} - The cached object or null
+ * @param {string} sql - A string value of SQL statement.
+ * @returns {string} - The cached string or null.
  */
 async function readCache(sql) {
   return redisClient.get(`${NAMESPACE}${hash(sql)}`)
 }
 
 /**
- * Write to cache with TTL 
+ * Write to cache with TTL
  *
- * @param {string} sql - A string value
- * @param {Object} result - The Object going to cache. 
- * @param {number} ttl - Time to live
- * @returns {string} - "OK" or null
+ * @param {string} sql - A string value of SQL statement.
+ * @param {string} result - The stringified Object to be cached.
+ * @param {number} ttl - Time to live.
+ * @returns {string} - "OK" or null.
  */
 async function writeCacheEX(sql, result, ttl = TTL) {
-  return redisClient.set(`${NAMESPACE}${hash(sql)}`, `${JSON.stringify(result)}`, 'EX', ttl)
+  return redisClient.set(`${NAMESPACE}${hash(sql)}`, result, 'EX', ttl)
 }
 
 /**
  * Write to cache
  *
- * @param {string} sql - A string value
- * @param {Object} result - The Object going to cache. 
- * @returns {string} - Array of array containing result of pipeline
+ * @param {string} sql - A string value of SQL statement.
+ * @param {string} result - The stringified Object to be cached.
+ * @returns {string} - Array of array containing results of pipeline.
  */
 async function writeCache(sql, result) {
   const pipeline = redisClient.pipeline()
   const tableList = parser.tableList(sql, opt);
   
-  pipeline.set(`${NAMESPACE}${hash(sql)}`, `${JSON.stringify(result)}`);
+  pipeline.set(`${NAMESPACE}${hash(sql)}`, result);
 
   for (let i=0; i< tableList.length; i++) {
-    // the format is {type}::{dbName}::{tableName} // type could be select, update, delete or insert
+    // the format is {type}::{dbName}::{tableName} 
+    // type could be select, update, delete or insert
     const parts = tableList[i].split("::")    
     pipeline.sadd(`${NAMESPACE}${parts[2].toLowerCase()}`, `${NAMESPACE}${hash(sql)}`);
   }
@@ -66,17 +67,18 @@ async function writeCache(sql, result) {
 }
 
 /**
- * Update
+ * Update the cache
  *
- * @param {string} sql - A string value 
- * @returns {string} - Array of array containing result of pipeline
+ * @param {string} sql - A string value of SQL statement.
+ * @returns {string} - Array of array containing results of pipeline.
  */
 async function updateCache(sql) {
   const pipeline = redisClient.pipeline()
   const tableList = parser.tableList(sql, opt);
   
   for (let i=0; i< tableList.length; i++) {
-    // the format is {type}::{dbName}::{tableName} // type could be select, update, delete or insert
+    // the format is {type}::{dbName}::{tableName} 
+    // type could be select, update, delete or insert
     const parts = tableList[i].split("::")
     pipeline.clearSetAndValues(`${NAMESPACE}${parts[2].toLowerCase()}`)
   }
