@@ -32,14 +32,14 @@ fs.readFile(inputFilePath, 'utf8', (err, data) => {
                     // Not in synonym group 
                     // Replace newline characters with <br />
                     //const formattedDescription = entry.description.replace(/\n/g, '<br />');
-                    const command = `HSET "DONDICT:${entry.key}" description "${formattedDescription.replace(/"/g, '\\"')}"`;
+                    const command = `HSET "DONTDICT:${entry.key}" description "${formattedDescription.replace(/"/g, '\\"')}"`;
                     hsetCommands.push(command);
                 } else {
                     // Synonym group processing
                     // Replace newline characters with <br />
                     //const formattedDescription = entry.description.replace(/\n/g, '<br />');
                     synonymGroup.forEach((item) => {
-                        const command = `HSET "DONDICT:${item}" description "${formattedDescription.replace(/"/g, '\\"')}"`;
+                        const command = `HSET "DONTDICT:${item}" description "${formattedDescription.replace(/"/g, '\\"')}"`;
                         hsetCommands.push(command);
                     });
                     const command = `HSET "DONDICT:${entry.key}" description "${formattedDescription.replace(/"/g, '\\"')}"`;
